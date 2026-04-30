@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kent Clarence Mina — Data Analyst Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav id="navbar">
+    <div class="nav-logo">Kent<span>.</span>Mina</div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️</button>
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#home" onclick="toggleMenu()">Home</a>
+    <a href="#about" onclick="toggleMenu()">About</a>
+    <a href="#skills" onclick="toggleMenu()">Skills</a>
+    <a href="#projects" onclick="toggleMenu()">Projects</a>
+    <a href="#contact" onclick="toggleMenu()">Contact</a>
+  </div>
+
+  <!-- ── Hero ── -->
+  <section id="home">
+    <div class="hero-blob blob1"></div>
+    <div class="hero-blob blob2"></div>
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-badge"><span class="badge-dot"></span>Available for Opportunities</div>
+        <h1 class="hero-title">
+          Kent Clarence Mina
+          <span class="accent">Data Analyst</span>
+        </h1>
+        <p class="hero-tagline">Turning raw data into actionable insights — uncovering patterns, building dashboards, and telling stories with numbers.</p>
+        <div class="hero-cta">
+          <a href="#projects" class="btn-primary">📊 View Projects</a>
+          <a href="#contact" class="btn-outline">✉️ Contact Me</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="avatar-ring">
+          <div class="avatar-img"><div class="avatar-placeholder">👤</div></div>
+          <div class="floating-stat stat-right"><div class="stat-val">12+</div><div style="font-size:0.7rem;color:var(--muted)">Projects Done</div></div>
+          <div class="floating-stat stat-left"><div class="stat-val">95%</div><div style="font-size:0.7rem;color:var(--muted)">Accuracy Rate</div></div>
+          <div class="floating-stat stat-top"><div class="stat-val">5+ Tools</div><div style="font-size:0.7rem;color:var(--muted)">Mastered</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── About ── -->
+  <section id="about">
+    <div class="section-inner">
+      <div class="about-grid">
+        <div class="about-img-wrap reveal">
+          <div class="about-photo">🎓</div>
+          <div class="about-card">
+            <div class="about-card-stat">IT</div>
+            <div class="about-card-label">Computer Science Student</div>
+          </div>
+        </div>
+        <div class="about-text reveal">
+          <div class="section-label">// about_me</div>
+          <h2 class="section-title">Passionate about <br/>Data & Analytics</h2>
+          <p>I'm an IT student with a deep passion for data analytics, data visualization, and problem-solving. My journey started with spreadsheets and curiosity — and has evolved into building full data pipelines, interactive dashboards, and AI-driven tools.</p>
+          <p>I believe data holds the answers to complex questions — my job is to ask the right ones. Whether it's cleaning messy datasets, performing exploratory data analysis, or presenting insights through compelling visualizations, I bring rigor and creativity to every project.</p>
+          <p>Currently seeking internship and entry-level opportunities to apply my skills in real-world environments and contribute to data-driven decision making.</p>
+          <div class="tech-chips">
+            <span class="chip">Excel</span><span class="chip">SQL</span><span class="chip">Python</span>
+            <span class="chip">Power BI</span><span class="chip">Tableau</span><span class="chip">Pandas</span>
+            <span class="chip">Matplotlib</span><span class="chip">Flowise AI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Skills ── -->
+  <section id="skills">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div class="section-label">// skills_stack</div>
+        <h2 class="section-title">Tools & Capabilities</h2>
+        <p class="section-sub">A blend of technical depth and analytical thinking — here's what I bring to the table.</p>
+      </div>
+      <div class="skills-grid">
+        <div class="skill-card reveal">
+          <div class="skill-icon">📊</div>
+          <h3>Data Analysis</h3>
+          <p style="font-size:0.83rem;color:var(--muted);margin-bottom:0.5rem;">Core analytical capabilities across the data lifecycle.</p>
+          <div class="skill-bar-wrap">
+            <div class="skill-row"><div class="skill-label"><span>Data Cleaning</span><span>92%</span></div><div class="skill-bar"><div class="skill-fill" data-width="92"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span>Exploratory Analysis</span><span>87%</span></div><div class="skill-bar"><div class="skill-fill" data-width="87"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span>Data Visualization</span><span>90%</span></div><div class="skill-bar"><div class="skill-fill" data-width="90"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span>Statistical Analysis</span><span>78%</span></div><div class="skill-bar"><div class="skill-fill" data-width="78"></div></div></div>
+          </div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="skill-icon">🛠️</div>
+          <h3>Tools & Technologies</h3>
+          <p style="font-size:0.83rem;color:var(--muted);">Proficiency across the modern data analyst toolkit.</p>
+          <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="skill-icon">🧠</div>
+          <h3>Soft Skills</h3>
+          <p style="font-size:0.83rem;color:var(--muted);margin-bottom:0.75rem;">The human side of data — turning findings into decisions.</p>
+          <div class="soft-tags">
+            <span class="soft-tag">🗣️ Communication</span><span class="soft-tag">🔍 Critical Thinking</span>
+            <span class="soft-tag">🧩 Problem Solving</span><span class="soft-tag">📅 Time Management</span>
+            <span class="soft-tag">🤝 Teamwork</span><span class="soft-tag">📖 Data Storytelling</span>
+            <span class="soft-tag">🎯 Attention to Detail</span><span class="soft-tag">💡 Curiosity</span>
+          </div>
+          <div class="skill-bar-wrap" style="margin-top:1.5rem;">
+            <div class="skill-row"><div class="skill-label"><span>Communication</span><span>88%</span></div><div class="skill-bar"><div class="skill-fill" data-width="88"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span>Critical Thinking</span><span>93%</span></div><div class="skill-bar"><div class="skill-fill" data-width="93"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Projects ── -->
+  <section id="projects">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div class="section-label">// featured_projects</div>
+        <h2 class="section-title">Data Projects</h2>
+        <p class="section-sub">A selection of analysis, dashboards, and insights — each solving a real problem with data.</p>
+      </div>
+      <div class="projects-grid">
+        <div class="project-card reveal">
+          <div class="project-thumb"><div class="project-chart-container"><canvas id="proj1Chart" style="max-height:170px;"></canvas></div></div>
+          <div class="project-body">
+            <div class="project-tags"><span class="proj-tag">Python</span><span class="proj-tag">Pandas</span><span class="proj-tag">Matplotlib</span><span class="proj-tag">EDA</span></div>
+            <h3>Retail Sales EDA & Trend Analysis</h3>
+            <p>Performed end-to-end exploratory data analysis on 50,000+ retail transactions. Identified seasonal trends, top-performing categories, and revenue drivers using Python and Matplotlib visualizations.</p>
+            <div class="project-links"><a href="https://github.com/Kunn0916" target="_blank" class="proj-link">⌥ GitHub</a><a href="#" class="proj-link">↗ Live Demo</a></div>
+          </div>
+        </div>
+        <div class="project-card reveal">
+          <div class="project-thumb"><div class="project-chart-container"><canvas id="proj2Chart" style="max-height:170px;"></canvas></div></div>
+          <div class="project-body">
+            <div class="project-tags"><span class="proj-tag">Power BI</span><span class="proj-tag">SQL</span><span class="proj-tag">DAX</span></div>
+            <h3>HR Analytics Dashboard — Power BI</h3>
+            <p>Built an interactive HR dashboard to track employee attrition, satisfaction scores, and department-level performance metrics. Used SQL for data extraction and DAX for calculated KPIs.</p>
+            <div class="project-links"><a href="https://github.com/Kunn0916" target="_blank" class="proj-link">⌥ GitHub</a><a href="#" class="proj-link">↗ Live Demo</a></div>
+          </div>
+        </div>
+        <div class="project-card reveal">
+          <div class="project-thumb"><div class="project-chart-container"><canvas id="proj3Chart" style="max-height:170px;"></canvas></div></div>
+          <div class="project-body">
+            <div class="project-tags"><span class="proj-tag">SQL</span><span class="proj-tag">Excel</span><span class="proj-tag">Tableau</span></div>
+            <h3>COVID-19 Data Analysis — Philippines</h3>
+            <p>Analyzed COVID-19 case data across Philippine regions using SQL queries and Tableau visualizations. Built a geographic heatmap and time-series dashboard for trend monitoring.</p>
+            <div class="project-links"><a href="https://github.com/Kunn0916" target="_blank" class="proj-link">⌥ GitHub</a><a href="#" class="proj-link">↗ Tableau Public</a></div>
+          </div>
+        </div>
+        <div class="project-card reveal">
+          <div class="project-thumb"><div class="project-chart-container"><canvas id="proj4Chart" style="max-height:170px;"></canvas></div></div>
+          <div class="project-body">
+            <div class="project-tags"><span class="proj-tag">Python</span><span class="proj-tag">Scikit-learn</span><span class="proj-tag">Seaborn</span></div>
+            <h3>Student Performance Predictor</h3>
+            <p>Built a machine learning classification model to predict student pass/fail outcomes based on study habits, attendance, and grades. Achieved 89% model accuracy with a correlation heatmap for feature selection.</p>
+            <div class="project-links"><a href="https://github.com/Kunn0916" target="_blank" class="proj-link">⌥ GitHub</a><a href="#" class="proj-link">↗ Notebook</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Contact ── -->
+  <section id="contact">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div class="section-label">// get_in_touch</div>
+        <h2 class="section-title">Let's Connect</h2>
+        <p class="section-sub">Whether it's a project, collaboration, or just a hello — I'd love to hear from you.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info reveal">
+          <h3>Contact Information</h3>
+          <p>I'm currently open to internship opportunities, freelance data projects, and collaborative work. Feel free to reach out via any of the channels below.</p>
+          <div class="contact-links">
+            <a href="mailto:rheakentmina@gmail.com" class="contact-link-item">
+              <div class="cl-icon">✉️</div>
+              <div>
+                <div style="font-weight:600;font-size:0.88rem;">Email</div>
+                <div style="font-size:0.8rem;color:var(--muted)">rheakentmina@gmail.com</div>
+              </div>
+            </a>
+            <a href="https://linkedin.com/in/kent-mina" target="_blank" class="contact-link-item">
+              <div class="cl-icon">💼</div>
+              <div>
+                <div style="font-weight:600;font-size:0.88rem;">LinkedIn</div>
+                <div style="font-size:0.8rem;color:var(--muted)">linkedin.com/in/kent-mina</div>
+              </div>
+            </a>
+            <a href="https://github.com/Kunn0916" target="_blank" class="contact-link-item">
+              <div class="cl-icon">🐙</div>
+              <div>
+                <div style="font-weight:600;font-size:0.88rem;">GitHub</div>
+                <div style="font-size:0.8rem;color:var(--muted)">github.com/Kunn0916</div>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="contact-form">
+            <div class="form-row">
+              <div class="form-group"><label for="fname">First Name</label><input type="text" id="fname" placeholder="Your name" /></div>
+              <div class="form-group"><label for="lname">Last Name</label><input type="text" id="lname" placeholder="Your surname" /></div>
+            </div>
+            <div class="form-group"><label for="email">Email Address</label><input type="email" id="email" placeholder="hello@example.com" /></div>
+            <div class="form-group"><label for="subject">Subject</label><input type="text" id="subject" placeholder="Internship Opportunity" /></div>
+            <div class="form-group"><label for="msg">Message</label><textarea id="msg" rows="5" placeholder="Hi Kent, I'd love to discuss..."></textarea></div>
+            <button class="form-submit" onclick="submitForm()">✈️ Send Message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-copy">© 2025 <span>Kent Clarence Mina</span>. Built with passion & Python. All rights reserved.</div>
+      <div class="footer-social">
+        <a href="https://github.com/Kunn0916" target="_blank" class="social-btn" title="GitHub">🐙</a>
+        <a href="https://linkedin.com/in/kent-mina" target="_blank" class="social-btn" title="LinkedIn">💼</a>
+        <a href="mailto:rheakentmina@gmail.com" class="social-btn" title="Email">✉️</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════
+       CHATBOT WIDGET
+  ═══════════════════════════════════════════ -->
+
+  <!-- Floating trigger button -->
+  <button id="chat-trigger" onclick="toggleChat()" aria-label="Open chat">
+    <!-- Chat icon -->
+    <svg class="icon-chat" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+    </svg>
+    <!-- Close icon -->
+    <svg class="icon-close" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+    </svg>
+    <span class="chat-badge" id="chat-badge">1</span>
+  </button>
+
+  <!-- Chat window -->
+  <div id="chat-window" role="dialog" aria-label="Chat with Kent's AI Assistant">
+    <div class="chat-header">
+      <div class="chat-avatar">🤖</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">Kent's AI Assistant</div>
+        <div class="chat-header-status"><span class="status-dot"></span> Online — ask me anything!</div>
+      </div>
+      <button class="chat-header-close" onclick="toggleChat()" aria-label="Close chat">✕</button>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <!-- Greeting message injected by JS -->
+    </div>
+
+    <!-- Quick suggestion chips -->
+    <div class="chat-suggestions" id="chat-suggestions">
+      <button class="suggestion-btn" onclick="sendSuggestion(this)">Who is Kent?</button>
+      <button class="suggestion-btn" onclick="sendSuggestion(this)">What tools does he use?</button>
+      <button class="suggestion-btn" onclick="sendSuggestion(this)">His projects?</button>
+      <button class="suggestion-btn" onclick="sendSuggestion(this)">Open to hire?</button>
+    </div>
+
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Ask about Kent…" maxlength="400"
+             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" />
+      <button id="chat-send" onclick="sendMessage()" aria-label="Send">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</body>
+</html>
