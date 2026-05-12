@@ -11,7 +11,7 @@
    4. Make sure "Allow Public Access" is ON (no API key needed)
 ───────────────────────────────────────────────────────────────*/
 const FLOWISE_CHATFLOW_ID = "8de78eb0-6750-4460-b0c6-109aeeb49dd3"; // ← update if different
-const FLOWISE_API_KEY     = "https://cloud.flowiseai.com/api/v1/vector/upsert/8de78eb0-6750-4460-b0c6-109aeeb49dd3";   // leave blank if Allow Public Access is ON
+const FLOWISE_API_KEY     = "";   // leave blank if Allow Public Access is ON
 const FLOWISE_BASE_URL    = "https://cloud.flowiseai.com";
 const DEBUG_CHAT          = true; // set false in production to hide error details in chat
 
