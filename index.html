@@ -57,7 +57,13 @@
       </div>
       <div class="hero-visual">
         <div class="avatar-ring">
-          <div class="avatar-img"><div class="avatar-placeholder">👤</div></div>
+          <!-- Replace the img src with your actual photo file name -->
+          <div class="avatar-img">
+            <img src="photo.jpg" alt="Kent Clarence Mina"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+            <div class="avatar-placeholder" style="display:none;">👤</div>
+          </div>
           <div class="floating-stat stat-right"><div class="stat-val">12+</div><div style="font-size:0.7rem;color:var(--muted)">Projects Done</div></div>
           <div class="floating-stat stat-left"><div class="stat-val">95%</div><div style="font-size:0.7rem;color:var(--muted)">Accuracy Rate</div></div>
           <div class="floating-stat stat-top"><div class="stat-val">5+ Tools</div><div style="font-size:0.7rem;color:var(--muted)">Mastered</div></div>
@@ -71,7 +77,12 @@
     <div class="section-inner">
       <div class="about-grid">
         <div class="about-img-wrap reveal">
-          <div class="about-photo">🎓</div>
+          <!-- Replace img src with your actual photo file name -->
+          <div class="about-photo">
+            <img src="photo.jpg" alt="Kent Clarence Mina"
+                 onerror="this.style.display='none';this.parentElement.innerHTML+='🎓';"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:18px;" />
+          </div>
           <div class="about-card">
             <div class="about-card-stat">IT</div>
             <div class="about-card-label">Computer Science Student</div>
@@ -254,21 +265,16 @@
   <!-- ═══════════════════════════════════════════
        CHATBOT WIDGET
   ═══════════════════════════════════════════ -->
-
-  <!-- Floating trigger button -->
   <button id="chat-trigger" onclick="toggleChat()" aria-label="Open chat">
-    <!-- Chat icon -->
     <svg class="icon-chat" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
     </svg>
-    <!-- Close icon -->
     <svg class="icon-close" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
     </svg>
     <span class="chat-badge" id="chat-badge">1</span>
   </button>
 
-  <!-- Chat window -->
   <div id="chat-window" role="dialog" aria-label="Chat with Kent's AI Assistant">
     <div class="chat-header">
       <div class="chat-avatar">🤖</div>
@@ -278,19 +284,13 @@
       </div>
       <button class="chat-header-close" onclick="toggleChat()" aria-label="Close chat">✕</button>
     </div>
-
-    <div class="chat-messages" id="chat-messages">
-      <!-- Greeting message injected by JS -->
-    </div>
-
-    <!-- Quick suggestion chips -->
+    <div class="chat-messages" id="chat-messages"></div>
     <div class="chat-suggestions" id="chat-suggestions">
       <button class="suggestion-btn" onclick="sendSuggestion(this)">Who is Kent?</button>
       <button class="suggestion-btn" onclick="sendSuggestion(this)">What tools does he use?</button>
       <button class="suggestion-btn" onclick="sendSuggestion(this)">His projects?</button>
       <button class="suggestion-btn" onclick="sendSuggestion(this)">Open to hire?</button>
     </div>
-
     <div class="chat-input-row">
       <input type="text" id="chat-input" placeholder="Ask about Kent…" maxlength="400"
              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" />
@@ -299,5 +299,6 @@
       </button>
     </div>
   </div>
+
 </body>
 </html>
