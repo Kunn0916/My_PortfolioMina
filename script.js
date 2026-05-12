@@ -1,376 +1,484 @@
-/* ═══════════════════════════════════════════════════════════════
-   KENT CLARENCE MINA — Portfolio Script  v3
-   Flowise integration + rich fallback + debug helpers
-═══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   Kent Clarence Mina — Portfolio Script
+   Handles: theme, nav, scroll-reveal, skill bars,
+            Chart.js charts, contact form, AI chatbot
+════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────────────────────
-   ★  FLOWISE CONFIG
-   1. In Flowise Cloud open your chatflow
-   2. Click the </> share button → "Configuration" tab
-   3. Copy the chatflowId shown there — paste it below
-   4. Make sure "Allow Public Access" is ON (no API key needed)
-───────────────────────────────────────────────────────────────*/
-const FLOWISE_CHATFLOW_ID = "8de78eb0-6750-4460-b0c6-109aeeb49dd3"; // ← update if different
-const FLOWISE_API_KEY     = "";   // leave blank if Allow Public Access is ON
-const FLOWISE_BASE_URL    = "https://cloud.flowiseai.com";
-const DEBUG_CHAT          = true; // set false in production to hide error details in chat
-
-/* ─────────────────────────────────────────────
-   THEME TOGGLE
-───────────────────────────────────────────── */
-let isDark = true;
-let radarChartInstance = null;
-
+// ── Theme ──────────────────────────────────────
 function toggleTheme() {
-  isDark = !isDark;
-  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-  document.querySelector(".theme-toggle").textContent = isDark ? "☀️" : "🌙";
-  if (radarChartInstance) {
-    const lc = isDark ? "#8899aa" : "#64748b";
-    const gc = isDark ? "rgba(99,179,237,0.15)" : "rgba(59,130,246,0.15)";
-    radarChartInstance.options.scales.r.pointLabels.color = lc;
-    radarChartInstance.options.scales.r.grid.color = gc;
-    radarChartInstance.update();
-  }
+  const html  = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.querySelector('.theme-toggle').textContent = isDark ? '🌙' : '☀️';
+  // Rebuild charts so colours match the new theme
+  buildAllCharts();
 }
 
+// ── Mobile Menu ────────────────────────────────
 function toggleMenu() {
-  document.getElementById("mobileMenu").classList.toggle("open");
+  document.getElementById('mobileMenu').classList.toggle('open');
 }
 
+// ── Contact Form ───────────────────────────────
 function submitForm() {
-  const btn = document.querySelector(".form-submit");
-  btn.textContent = "✅ Message Sent!";
-  btn.style.background = "var(--accent2)";
-  setTimeout(() => { btn.innerHTML = "✈️ Send Message"; btn.style.background = ""; }, 3000);
+  const fname   = document.getElementById('fname').value.trim();
+  const lname   = document.getElementById('lname').value.trim();
+  const email   = document.getElementById('email').value.trim();
+  const subject = document.getElementById('subject').value.trim();
+  const msg     = document.getElementById('msg').value.trim();
+
+  if (!fname || !email || !msg) {
+    alert('Please fill in at least your name, email, and message.');
+    return;
+  }
+
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = '✅ Message Sent!';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  // Reset after 3 seconds
+  setTimeout(() => {
+    btn.innerHTML = '✈️ Send Message';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    ['fname','lname','email','subject','msg'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }, 3000);
 }
 
-/* ─────────────────────────────────────────────
-   SCROLL REVEAL
-───────────────────────────────────────────── */
+// ── Scroll Reveal ──────────────────────────────
 function initReveal() {
-  const obs = new IntersectionObserver(
-    entries => entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add("visible"); obs.unobserve(e.target); }
-    }),
-    { threshold: 0.12 }
-  );
-  document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-/* ─────────────────────────────────────────────
-   SKILL BARS
-───────────────────────────────────────────── */
+// ── Skill Bars ─────────────────────────────────
 function initSkillBars() {
-  const obs = new IntersectionObserver(
-    entries => entries.forEach(e => {
-      if (e.isIntersecting) { e.target.style.width = e.target.dataset.width + "%"; obs.unobserve(e.target); }
-    }),
-    { threshold: 0.3 }
-  );
-  document.querySelectorAll(".skill-fill").forEach(el => obs.observe(el));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.skill-fill').forEach(fill => {
+          fill.style.width = fill.dataset.width + '%';
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.skill-card').forEach(card => observer.observe(card));
 }
 
-/* ─────────────────────────────────────────────
-   RADAR CHART
-───────────────────────────────────────────── */
-function initRadarChart() {
-  const canvas = document.getElementById("radarChart");
-  if (!canvas || typeof Chart === "undefined") return;
-  radarChartInstance = new Chart(canvas, {
-    type: "radar",
+// ── CSS variable helper ────────────────────────
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// ── Chart.js instances (kept so we can destroy & rebuild) ──
+const chartInstances = {};
+
+function buildAllCharts() {
+  buildRadarChart();
+  buildProjectCharts();
+}
+
+// Radar Chart — Tools & Technologies
+function buildRadarChart() {
+  const ctx = document.getElementById('radarChart');
+  if (!ctx) return;
+
+  if (chartInstances.radar) { chartInstances.radar.destroy(); }
+
+  const accent  = cssVar('--accent');
+  const accent2 = cssVar('--accent2');
+  const muted   = cssVar('--muted');
+  const text    = cssVar('--text');
+
+  chartInstances.radar = new Chart(ctx, {
+    type: 'radar',
     data: {
-      labels: ["Excel","SQL","Python","Power BI","Tableau","Pandas","Flowise"],
-      datasets: [{ label: "Proficiency", data: [90,82,85,78,75,80,70],
-        borderColor:"#63b3ed", backgroundColor:"rgba(99,179,237,0.15)",
-        pointBackgroundColor:"#63b3ed", pointBorderColor:"#fff", pointRadius:4, borderWidth:2 }],
+      labels: ['Python', 'SQL', 'Power BI', 'Tableau', 'Excel', 'Pandas', 'Matplotlib'],
+      datasets: [{
+        label: 'Proficiency',
+        data: [85, 88, 80, 78, 92, 83, 80],
+        backgroundColor: accent + '30',
+        borderColor: accent,
+        pointBackgroundColor: accent2,
+        pointBorderColor: '#fff',
+        pointRadius: 4,
+        borderWidth: 2,
+      }]
     },
     options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{ display:false } },
-      scales: { r: { min:0, max:100, ticks:{ display:false }, grid:{ color:"rgba(99,179,237,0.15)" },
-        pointLabels:{ color:"#8899aa", font:{ size:11, family:"'DM Sans', sans-serif" } },
-        angleLines:{ color:"rgba(99,179,237,0.15)" } } },
-    },
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { display: false },
+          grid: { color: muted + '40' },
+          angleLines: { color: muted + '40' },
+          pointLabels: { color: text, font: { size: 11, family: "'JetBrains Mono', monospace" } }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
   });
 }
 
-/* ─────────────────────────────────────────────
-   PROJECT CHARTS
-───────────────────────────────────────────── */
-function initProjectCharts() {
-  if (typeof Chart === "undefined") return;
-  const noAxes = { scales:{ x:{ display:false }, y:{ display:false } } };
+// Project mini-charts
+function buildProjectCharts() {
+  const accent  = cssVar('--accent');
+  const accent2 = cssVar('--accent2');
+  const accent3 = cssVar('--accent3');
+  const muted   = cssVar('--muted');
+  const text    = cssVar('--text');
 
-  const p1 = document.getElementById("proj1Chart");
-  if (p1) new Chart(p1, { type:"line",
-    data:{ labels:["J","F","M","A","M","J","J","A","S","O","N","D"],
-      datasets:[{ data:[42,55,38,70,65,80,90,75,85,95,110,130],
-        borderColor:"#63b3ed", backgroundColor:"rgba(99,179,237,0.12)",
-        borderWidth:2.5, fill:true, tension:0.4, pointRadius:0 }] },
-    options:{ animation:false, plugins:{ legend:{ display:false } }, ...noAxes } });
+  // Project 1 — Retail Sales line chart
+  const ctx1 = document.getElementById('proj1Chart');
+  if (ctx1) {
+    if (chartInstances.p1) chartInstances.p1.destroy();
+    chartInstances.p1 = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        datasets: [{
+          label: 'Revenue ($K)',
+          data: [42, 55, 48, 70, 65, 88, 92, 78, 95, 110, 130, 145],
+          borderColor: accent,
+          backgroundColor: accent + '20',
+          fill: true,
+          tension: 0.45,
+          pointRadius: 3,
+          pointBackgroundColor: accent,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: muted, font: { size: 9 } }, grid: { color: muted + '25' } },
+          y: { ticks: { color: muted, font: { size: 9 } }, grid: { color: muted + '25' } }
+        }
+      }
+    });
+  }
 
-  const p2 = document.getElementById("proj2Chart");
-  if (p2) new Chart(p2, { type:"bar",
-    data:{ labels:["HR","Sales","Tech","Ops","Fin"],
-      datasets:[{ data:[72,85,90,68,78],
-        backgroundColor:["rgba(99,179,237,0.7)","rgba(79,209,197,0.7)","rgba(246,173,85,0.7)","rgba(99,179,237,0.5)","rgba(79,209,197,0.5)"],
-        borderRadius:6 }] },
-    options:{ animation:false, plugins:{ legend:{ display:false } }, ...noAxes } });
+  // Project 2 — HR Attrition donut
+  const ctx2 = document.getElementById('proj2Chart');
+  if (ctx2) {
+    if (chartInstances.p2) chartInstances.p2.destroy();
+    chartInstances.p2 = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Retained', 'Attrited'],
+        datasets: [{
+          data: [84, 16],
+          backgroundColor: [accent + 'cc', accent3 + 'cc'],
+          borderColor: [accent, accent3],
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { color: muted, font: { size: 10 } } }
+        }
+      }
+    });
+  }
 
-  const p3 = document.getElementById("proj3Chart");
-  if (p3) new Chart(p3, { type:"doughnut",
-    data:{ labels:["NCR","Cebu","Davao","Others"],
-      datasets:[{ data:[40,22,18,20],
-        backgroundColor:["rgba(99,179,237,0.8)","rgba(79,209,197,0.8)","rgba(246,173,85,0.8)","rgba(141,162,251,0.8)"],
-        borderColor:"transparent" }] },
-    options:{ animation:false, plugins:{ legend:{ display:false } }, cutout:"65%" } });
+  // Project 3 — COVID bar chart
+  const ctx3 = document.getElementById('proj3Chart');
+  if (ctx3) {
+    if (chartInstances.p3) chartInstances.p3.destroy();
+    chartInstances.p3 = new Chart(ctx3, {
+      type: 'bar',
+      data: {
+        labels: ['NCR','Cebu','Davao','Laguna','Rizal','Cavite','Batangas'],
+        datasets: [{
+          label: 'Cases (K)',
+          data: [120, 58, 45, 38, 32, 28, 22],
+          backgroundColor: [
+            accent + 'cc', accent2 + 'cc', accent3 + 'cc',
+            accent + 'aa', accent2 + 'aa', accent3 + 'aa', accent + '88'
+          ],
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: muted, font: { size: 9 } }, grid: { color: 'transparent' } },
+          y: { ticks: { color: muted, font: { size: 9 } }, grid: { color: muted + '25' } }
+        }
+      }
+    });
+  }
 
-  const p4 = document.getElementById("proj4Chart");
-  if (p4) new Chart(p4, { type:"bar",
-    data:{ labels:["Att.","Study","Grades","Act.","Sleep"],
-      datasets:[
-        { data:[88,76,91,83,70], backgroundColor:"rgba(79,209,197,0.7)", borderRadius:5 },
-        { data:[55,40,52,48,60], backgroundColor:"rgba(252,92,101,0.5)", borderRadius:5 }] },
-    options:{ animation:false, plugins:{ legend:{ display:false } }, ...noAxes } });
-}
+  // Project 4 — Student Performance scatter
+  const ctx4 = document.getElementById('proj4Chart');
+  if (ctx4) {
+    if (chartInstances.p4) chartInstances.p4.destroy();
 
-/* ═══════════════════════════════════════════════════════════════
-   CHATBOT — FLOWISE + RICH FALLBACK
-═══════════════════════════════════════════════════════════════ */
+    const generatePoints = (count, cx, cy, spread) =>
+      Array.from({ length: count }, () => ({
+        x: +(cx + (Math.random() - 0.5) * spread).toFixed(1),
+        y: +(cy + (Math.random() - 0.5) * spread).toFixed(1),
+      }));
 
-const SESSION_ID = "kent-" + Math.random().toString(36).slice(2, 10);
-const chatState  = { opened:false, greeted:false, loading:false };
-
-/* ── Toggle ── */
-function toggleChat() {
-  const win     = document.getElementById("chat-window");
-  const trigger = document.getElementById("chat-trigger");
-  const badge   = document.getElementById("chat-badge");
-  if (!win || !trigger) return;
-
-  chatState.opened = !chatState.opened;
-  win.classList.toggle("open", chatState.opened);
-  trigger.classList.toggle("open", chatState.opened);
-
-  if (chatState.opened) {
-    if (badge) badge.style.display = "none";
-    if (!chatState.greeted) {
-      appendBot("Hi! 👋 I'm Kent's AI assistant. Ask me about his skills, projects, tools, or whether he's available to hire!");
-      chatState.greeted = true;
-    }
-    document.getElementById("chat-input")?.focus();
+    chartInstances.p4 = new Chart(ctx4, {
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Pass',
+            data: generatePoints(30, 75, 80, 25),
+            backgroundColor: accent2 + 'cc',
+            pointRadius: 4,
+          },
+          {
+            label: 'Fail',
+            data: generatePoints(15, 40, 45, 20),
+            backgroundColor: accent3 + 'cc',
+            pointRadius: 4,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { color: muted, font: { size: 10 } } }
+        },
+        scales: {
+          x: { ticks: { color: muted, font: { size: 9 } }, grid: { color: muted + '25' }, title: { display: true, text: 'Study Hours', color: muted, font: { size: 9 } } },
+          y: { ticks: { color: muted, font: { size: 9 } }, grid: { color: muted + '25' }, title: { display: true, text: 'Grade (%)', color: muted, font: { size: 9 } } }
+        }
+      }
+    });
   }
 }
 
-/* ── Suggestion chips ── */
-function sendSuggestion(btn) {
-  const text = btn?.textContent?.trim();
-  if (!text) return;
-  const inp = document.getElementById("chat-input");
-  if (inp) inp.value = text;
-  sendMessage();
+// ══════════════════════════════════════════════════
+//  AI CHATBOT
+// ══════════════════════════════════════════════════
+
+const KENT_SYSTEM_PROMPT = `You are Kent's AI Portfolio Assistant — a friendly, concise, and knowledgeable assistant embedded in Kent Clarence Mina's data analyst portfolio website.
+
+About Kent Clarence Mina:
+- IT student with a passion for data analytics, data visualization, and problem-solving
+- Skills: Excel, SQL, Python, Power BI, Tableau, Pandas, Matplotlib, Flowise AI, Scikit-learn, Seaborn
+- Currently seeking internship and entry-level Data Analyst opportunities
+- Email: rheakentmina@gmail.com | LinkedIn: linkedin.com/in/kent-mina | GitHub: github.com/Kunn0916
+
+Projects:
+1. Retail Sales EDA & Trend Analysis — Python, Pandas, Matplotlib; analyzed 50,000+ transactions, identified seasonal trends
+2. HR Analytics Dashboard — Power BI, SQL, DAX; tracked employee attrition, satisfaction, and department KPIs
+3. COVID-19 Data Analysis Philippines — SQL, Excel, Tableau; geographic heatmap and time-series dashboard for PH regions
+4. Student Performance Predictor — Python, Scikit-learn, Seaborn; ML classification model with 89% accuracy
+
+Analytical Skills: Data Cleaning (92%), Exploratory Analysis (87%), Data Visualization (90%), Statistical Analysis (78%)
+Soft Skills: Communication, Critical Thinking, Problem Solving, Data Storytelling, Attention to Detail
+
+Your job:
+- Answer questions about Kent's background, skills, projects, and availability
+- Be warm, professional, and concise (2–4 sentences max per reply)
+- Encourage visitors to reach out via email or LinkedIn if they're interested in hiring or collaborating
+- If asked something outside Kent's portfolio, politely redirect back to Kent-related topics
+- Never fabricate information not provided above`;
+
+let chatHistory = [];
+let isBotTyping = false;
+
+function getTime() {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-/* ── Send ── */
-async function sendMessage() {
-  if (chatState.loading) return;
-  const inp  = document.getElementById("chat-input");
-  const text = inp?.value?.trim();
-  if (!text) return;
+function appendMessage(role, text) {
+  const container = document.getElementById('chat-messages');
 
-  inp.value = "";
-  appendUser(text);
+  const wrapper = document.createElement('div');
+  wrapper.className = `msg ${role}`;
 
-  const sendBtn = document.getElementById("chat-send");
-  if (sendBtn) sendBtn.disabled = true;
-  chatState.loading = true;
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
 
-  const typingId = showTyping();
+  const col = document.createElement('div');
+  col.className = 'msg-col';
 
-  try {
-    const reply = await getReply(text);
-    removeTyping(typingId);
-    appendBot(reply);
-  } catch (err) {
-    removeTyping(typingId);
-    if (DEBUG_CHAT) {
-      console.error("[Chatbot] Flowise failed:", err.message);
-      appendBot("⚠️ Flowise offline — using fallback mode. (Check console for error details.)");
-    }
-    // Always show a fallback reply
-    setTimeout(() => appendBot(fallbackReply(text)), 300);
-  } finally {
-    chatState.loading = false;
-    if (sendBtn) sendBtn.disabled = false;
-    inp?.focus();
-  }
-}
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
 
-/* ── Try Flowise, throw on failure so catch can handle ── */
-async function getReply(question) {
-  if (!FLOWISE_CHATFLOW_ID) {
-    throw new Error("No chatflow ID configured — using fallback.");
-  }
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = getTime();
 
-  const url = `${FLOWISE_BASE_URL}/api/v1/prediction/${FLOWISE_CHATFLOW_ID}`;
-  const headers = { "Content-Type": "application/json" };
-  if (FLOWISE_API_KEY) headers["Authorization"] = `Bearer ${FLOWISE_API_KEY}`;
+  col.appendChild(bubble);
+  col.appendChild(time);
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(col);
+  container.appendChild(wrapper);
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ question, sessionId: SESSION_ID }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status} — ${body.slice(0, 300)}`);
-  }
-
-  const data = await res.json();
-  const reply = data.text || data.answer || data.message || "";
-  if (!reply) throw new Error("Flowise returned an empty response.");
-  return reply;
-}
-
-/* ── Rich keyword fallback ── */
-function fallbackReply(msg) {
-  const m = msg.toLowerCase();
-
-  if (/who is kent|about kent|introduce|yourself|tell me about/.test(m))
-    return "Kent Clarence Mina is an IT student specializing in data analytics, data visualization, and AI-powered solutions. He turns raw data into actionable insights using Python, SQL, Power BI, and Flowise AI.";
-
-  if (/tool|skill|tech|stack|language|framework|software/.test(m))
-    return "Kent's core stack:\n• 📊 Excel & Google Sheets\n• 🗄️ SQL (MySQL, PostgreSQL)\n• 🐍 Python — Pandas, Matplotlib, Scikit-learn\n• 📈 Power BI & DAX\n• 🗺️ Tableau\n• 🤖 Flowise AI & LangChain\n• Git, Jupyter Notebooks";
-
-  if (/project|work|portfolio|built|created|made/.test(m))
-    return "Kent's featured projects:\n1️⃣ Retail Sales EDA — Python, Pandas, 50k+ transactions\n2️⃣ HR Analytics Dashboard — Power BI + SQL + DAX\n3️⃣ COVID-19 PH Analysis — SQL + Tableau heatmap\n4️⃣ Student Performance Predictor — Scikit-learn, 89% accuracy\nSee them all at github.com/Kunn0916";
-
-  if (/hire|availab|intern|opportunit|open|job|work with|freelance/.test(m))
-    return "Yes! Kent is actively open to internship and entry-level data analyst roles. Contact him at:\n✉️ rheakentmina@gmail.com\n💼 linkedin.com/in/kent-mina\nHe's excited to contribute to a data-driven team!";
-
-  if (/contact|email|reach|linkedin|github|social/.test(m))
-    return "Reach Kent through:\n✉️ rheakentmina@gmail.com\n💼 linkedin.com/in/kent-mina\n🐙 github.com/Kunn0916\nOr use the contact form on this page!";
-
-  if (/python|pandas|matplotlib|scikit|seaborn/.test(m))
-    return "Python is Kent's primary data language. He uses Pandas for wrangling, Matplotlib & Seaborn for visualization, and Scikit-learn for ML models like classification and regression.";
-
-  if (/sql|database|query|mysql|postgres/.test(m))
-    return "Kent is proficient in SQL — writing complex JOINs, aggregations, window functions, and subqueries for data extraction and Power BI pipelines.";
-
-  if (/power bi|powerbi|dax|dashboard/.test(m))
-    return "Kent's HR Analytics Power BI dashboard tracks attrition, satisfaction scores, and department KPIs using SQL for extraction and DAX for calculated measures.";
-
-  if (/flowise|ai|llm|chatbot|langchain|rag|vector|gemini/.test(m))
-    return "Kent builds RAG-powered AI pipelines with Flowise AI. This chatbot is powered by Google Gemini + a vector store that indexes his entire portfolio — exactly the kind of AI tooling he loves building!";
-
-  if (/stud|school|university|college|degree|education/.test(m))
-    return "Kent is an IT student focused on data analytics and computer science fundamentals, looking to apply his skills in real-world internships and data projects.";
-
-  if (/thank|thanks|appreciate|great|awesome|cool/.test(m))
-    return "You're welcome! 😊 Feel free to ask anything else about Kent's projects, skills, or how to get in touch.";
-
-  if (/^(hi|hello|hey|sup|yo|howdy)/.test(m))
-    return "Hey! 👋 I'm Kent's assistant. Ask me about his skills, projects, tech stack, or availability — happy to help!";
-
-  return "I can tell you about Kent's:\n• 🛠️ Skills & tech stack\n• 📊 Projects & portfolio\n• 🎓 Education & background\n• 📬 Availability & contact info\nWhat would you like to know?";
-}
-
-/* ─────────────────────────────────────────────
-   DOM HELPERS
-───────────────────────────────────────────── */
-function appendUser(text) {
-  const msgs = document.getElementById("chat-messages");
-  if (!msgs) return;
-  const el = document.createElement("div");
-  el.className = "msg user";
-  el.innerHTML = `
-    <div class="msg-avatar">👤</div>
-    <div class="msg-col">
-      <div class="msg-bubble">${sanitize(text)}</div>
-      <div class="msg-time">${now()}</div>
-    </div>`;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function appendBot(text) {
-  const msgs = document.getElementById("chat-messages");
-  if (!msgs) return;
-  const el = document.createElement("div");
-  el.className = "msg bot";
-  el.innerHTML = `
-    <div class="msg-avatar">🤖</div>
-    <div class="msg-col">
-      <div class="msg-bubble">${sanitize(text)}</div>
-      <div class="msg-time">${now()}</div>
-    </div>`;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
+  container.scrollTop = container.scrollHeight;
+  return bubble;
 }
 
 function showTyping() {
-  const msgs = document.getElementById("chat-messages");
-  if (!msgs) return null;
-  const id = "typing-" + Date.now();
-  const el = document.createElement("div");
-  el.className = "msg bot";
-  el.id = id;
-  el.innerHTML = `
-    <div class="msg-avatar">🤖</div>
-    <div class="msg-col">
-      <div class="msg-bubble" style="padding:0.55rem 0.9rem;">
-        <div class="typing-dots"><span></span><span></span><span></span></div>
-      </div>
-    </div>`;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-  return id;
+  const container = document.getElementById('chat-messages');
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg bot';
+  wrapper.id = 'typing-indicator';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = '🤖';
+
+  const col = document.createElement('div');
+  col.className = 'msg-col';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+  col.appendChild(bubble);
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(col);
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
 }
 
-function removeTyping(id) { document.getElementById(id)?.remove(); }
-
-function now() {
-  return new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
 }
 
-function sanitize(str) {
-  return str
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#039;")
-    .replace(/\n/g,"<br>");
+async function sendMessage() {
+  if (isBotTyping) return;
+
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  hideSuggestions();
+  hideBadge();
+
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  isBotTyping = true;
+  document.getElementById('chat-send').disabled = true;
+  showTyping();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        system: KENT_SYSTEM_PROMPT,
+        messages: chatHistory,
+      })
+    });
+
+    const data = await response.json();
+    removeTyping();
+
+    const reply = data?.content?.[0]?.text ?? "Sorry, I couldn't get a response right now. Please try again!";
+    appendMessage('bot', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+
+  } catch (err) {
+    removeTyping();
+    appendMessage('bot', "Oops — something went wrong on my end. You can reach Kent directly at rheakentmina@gmail.com 📧");
+    console.error('Chat API error:', err);
+  }
+
+  isBotTyping = false;
+  document.getElementById('chat-send').disabled = false;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════════════════ */
-document.addEventListener("DOMContentLoaded", () => {
+function sendSuggestion(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendMessage();
+}
+
+function hideSuggestions() {
+  const el = document.getElementById('chat-suggestions');
+  if (el) el.style.display = 'none';
+}
+
+function hideBadge() {
+  const badge = document.getElementById('chat-badge');
+  if (badge) badge.style.display = 'none';
+}
+
+function toggleChat() {
+  const trigger = document.getElementById('chat-trigger');
+  const win     = document.getElementById('chat-window');
+  trigger.classList.toggle('open');
+  win.classList.toggle('open');
+  hideBadge();
+
+  if (win.classList.contains('open')) {
+    document.getElementById('chat-input').focus();
+  }
+}
+
+function initChat() {
+  // Greeting message
+  const container = document.getElementById('chat-messages');
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg bot';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = '🤖';
+
+  const col = document.createElement('div');
+  col.className = 'msg-col';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = "👋 Hi there! I'm Kent's AI assistant. Ask me anything about his skills, projects, or how to get in touch!";
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = getTime();
+
+  col.appendChild(bubble);
+  col.appendChild(time);
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(col);
+  container.appendChild(wrapper);
+
+  chatHistory.push({
+    role: 'assistant',
+    content: "👋 Hi there! I'm Kent's AI assistant. Ask me anything about his skills, projects, or how to get in touch!"
+  });
+}
+
+// ── Init on DOM Ready ───────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initSkillBars();
-  initRadarChart();
-  initProjectCharts();
-
-  const navbar = document.getElementById("navbar");
-  if (navbar) {
-    window.addEventListener("scroll", () => {
-      navbar.style.boxShadow = window.scrollY > 20 ? "0 4px 24px rgba(0,0,0,0.35)" : "none";
-    }, { passive:true });
-  }
-
-  const sections = document.querySelectorAll("section[id]");
-  const navLinks = document.querySelectorAll(".nav-links a");
-  window.addEventListener("scroll", () => {
-    let cur = "";
-    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) cur = s.id; });
-    navLinks.forEach(a => {
-      a.style.color = a.getAttribute("href") === "#" + cur ? "var(--accent)" : "";
-    });
-  }, { passive:true });
-
-  if (DEBUG_CHAT) {
-    console.log(`%c[Chatbot] Session: ${SESSION_ID}`, "color:#63b3ed;font-weight:bold");
-    console.log(`%c[Chatbot] Flowise URL: ${FLOWISE_BASE_URL}/api/v1/prediction/${FLOWISE_CHATFLOW_ID}`, "color:#63b3ed");
-    console.log("%c[Chatbot] CORS fix: Flowise → your chatflow → Share icon → enable 'Allow Public Access'", "color:#f6ad55");
-  }
+  buildAllCharts();
+  initChat();
 });
