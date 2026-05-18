@@ -10,7 +10,6 @@ function toggleTheme() {
   const isDark = html.getAttribute('data-theme') === 'dark';
   html.setAttribute('data-theme', isDark ? 'light' : 'dark');
   document.querySelector('.theme-toggle').textContent = isDark ? '🌙' : '☀️';
-  // Rebuild charts so colours match the new theme
   buildAllCharts();
 }
 
@@ -37,7 +36,6 @@ function submitForm() {
   btn.disabled = true;
   btn.style.opacity = '0.7';
 
-  // Reset after 3 seconds
   setTimeout(() => {
     btn.innerHTML = '✈️ Send Message';
     btn.disabled = false;
@@ -83,7 +81,7 @@ function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-// ── Chart.js instances (kept so we can destroy & rebuild) ──
+// ── Chart.js instances ─────────────────────────
 const chartInstances = {};
 
 function buildAllCharts() {
@@ -272,32 +270,10 @@ function buildProjectCharts() {
 }
 
 // ══════════════════════════════════════════════════
-//  AI CHATBOT
+//  AI CHATBOT — Powered by Flowise
 // ══════════════════════════════════════════════════
 
-const KENT_SYSTEM_PROMPT = `You are Kent's AI Portfolio Assistant — a friendly, concise, and knowledgeable assistant embedded in Kent Clarence Mina's data analyst portfolio website.
-
-About Kent Clarence Mina:
-- IT student with a passion for data analytics, data visualization, and problem-solving
-- Skills: Excel, SQL, Python, Power BI, Tableau, Pandas, Matplotlib, Flowise AI, Scikit-learn, Seaborn
-- Currently seeking internship and entry-level Data Analyst opportunities
-- Email: rheakentmina@gmail.com | LinkedIn: linkedin.com/in/kent-mina | GitHub: github.com/Kunn0916
-
-Projects:
-1. Retail Sales EDA & Trend Analysis — Python, Pandas, Matplotlib; analyzed 50,000+ transactions, identified seasonal trends
-2. HR Analytics Dashboard — Power BI, SQL, DAX; tracked employee attrition, satisfaction, and department KPIs
-3. COVID-19 Data Analysis Philippines — SQL, Excel, Tableau; geographic heatmap and time-series dashboard for PH regions
-4. Student Performance Predictor — Python, Scikit-learn, Seaborn; ML classification model with 89% accuracy
-
-Analytical Skills: Data Cleaning (92%), Exploratory Analysis (87%), Data Visualization (90%), Statistical Analysis (78%)
-Soft Skills: Communication, Critical Thinking, Problem Solving, Data Storytelling, Attention to Detail
-
-Your job:
-- Answer questions about Kent's background, skills, projects, and availability
-- Be warm, professional, and concise (2–4 sentences max per reply)
-- Encourage visitors to reach out via email or LinkedIn if they're interested in hiring or collaborating
-- If asked something outside Kent's portfolio, politely redirect back to Kent-related topics
-- Never fabricate information not provided above`;
+const FLOWISE_URL = 'https://cloud.flowiseai.com/api/v1/prediction/8de78eb0-6750-4460-b0c6-109aeeb49dd3';
 
 let chatHistory = [];
 let isBotTyping = false;
@@ -379,35 +355,30 @@ async function sendMessage() {
   hideBadge();
 
   appendMessage('user', text);
-  chatHistory.push({ role: 'user', content: text });
 
   isBotTyping = true;
   document.getElementById('chat-send').disabled = true;
   showTyping();
 
   try {
-    const response = await fetch('https://cloud.flowiseai.com/api/v1/prediction/8de78eb0-6750-4460-b0c6-109aeeb49dd3', {
+    // ✅ FIXED: Flowise only needs { question } — not Anthropic's message format
+    const response = await fetch(FLOWISE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        system: KENT_SYSTEM_PROMPT,
-        messages: chatHistory,
-      })
+      body: JSON.stringify({ question: text })
     });
 
     const data = await response.json();
     removeTyping();
 
-    const reply = data?.content?.[0]?.text ?? "Sorry, I couldn't get a response right now. Please try again!";
+    // ✅ FIXED: Flowise returns data.text, not data.content[0].text
+    const reply = data?.text ?? "Sorry, I couldn't get a response right now. Please try again!";
     appendMessage('bot', reply);
-    chatHistory.push({ role: 'assistant', content: reply });
 
   } catch (err) {
     removeTyping();
     appendMessage('bot', "Oops — something went wrong on my end. You can reach Kent directly at rheakentmina@gmail.com 📧");
-    console.error('Chat API error:', err);
+    console.error('Flowise API error:', err);
   }
 
   isBotTyping = false;
@@ -442,7 +413,6 @@ function toggleChat() {
 }
 
 function initChat() {
-  // Greeting message
   const container = document.getElementById('chat-messages');
 
   const wrapper = document.createElement('div');
@@ -468,11 +438,6 @@ function initChat() {
   wrapper.appendChild(avatar);
   wrapper.appendChild(col);
   container.appendChild(wrapper);
-
-  chatHistory.push({
-    role: 'assistant',
-    content: "👋 Hi there! I'm Kent's AI assistant. Ask me anything about his skills, projects, or how to get in touch!"
-  });
 }
 
 // ── Init on DOM Ready ───────────────────────────
