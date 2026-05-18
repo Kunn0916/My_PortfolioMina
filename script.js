@@ -386,7 +386,7 @@ async function sendMessage() {
   showTyping();
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://cloud.flowiseai.com/api/v1/prediction/8de78eb0-6750-4460-b0c6-109aeeb49dd3', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
